@@ -1,0 +1,13 @@
+{
+  "name": "openarcade-hub",
+  "version": "0.1.0",
+  "description": "Local host hub for OpenArcade",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "validate:manifests": "node scripts/validateManifests.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

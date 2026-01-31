@@ -1,5 +1,6 @@
 node_modules/
 hub/data/
+website/dist/
 .env
 .DS_Store
 Thumbs.db

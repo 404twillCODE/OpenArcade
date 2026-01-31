@@ -29,6 +29,14 @@ jobs:
         run: node -c src/index.js
         working-directory: hub
 
+      - name: Install hub app (UI) dependencies
+        run: npm ci
+        working-directory: hub/app
+
+      - name: Build hub UI
+        run: npm run build:ui
+        working-directory: hub
+
       - name: Validate game manifests
         run: npm run validate:manifests
         working-directory: hub

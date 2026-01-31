@@ -4,7 +4,12 @@
   "description": "Local host hub for OpenArcade",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "postinstall": "npm install --prefix app",
+    "start": "npm run build:ui && node src/index.js",
+    "build": "npm run build:ui",
+    "build:ui": "npm run build --prefix app",
+    "dev": "node src/index.js",
+    "dev:ui": "npm run dev --prefix app",
     "validate:manifests": "node scripts/validateManifests.js"
   },
   "dependencies": {

@@ -23,14 +23,16 @@ async function start() {
   const app = express();
   app.use(express.json());
 
-  const adminPath = path.join(__dirname, "..", "public", "admin");
-  const landingPath = path.join(__dirname, "..", "public", "landing");
+  const publicAppPath = path.join(__dirname, "..", "public", "app");
 
-  app.use("/admin", express.static(adminPath));
-  app.use("/", express.static(landingPath));
-
+  // --- API routes (unchanged contract) ---
   app.get("/api/games", async (_req, res) => {
     res.json(games);
+  });
+
+  app.get("/api/state", async (_req, res) => {
+    const activeGameId = await getActiveGameId();
+    res.json({ activeGameId });
   });
 
   app.get("/api/active-game", async (_req, res) => {
@@ -49,26 +51,34 @@ async function start() {
     return res.json({ activeGameId });
   });
 
-  app.get("/play", (_req, res) => {
-    res.redirect("/play/");
+  // --- Game client: /game/:id/* serves that game's client folder (for React /play iframe) ---
+  app.use("/game/:id", (req, res, next) => {
+    const gameId = req.params.id;
+    const game = games.find((g) => g.id === gameId);
+    if (!game) {
+      return res.status(404).send("Game not found.");
+    }
+    const clientPath = path.join(gamesRoot, gameId, "client");
+    return express.static(clientPath)(req, res, next);
   });
 
-  app.use("/play", async (req, res, next) => {
-    const activeGameId = await getActiveGameId();
-    const game = games.find((g) => g.id === activeGameId);
-    if (!game) {
-      return res.status(404).send("No active game.");
-    }
+  // --- React SPA: static assets from hub/public/app ---
+  app.use(express.static(publicAppPath));
 
-    const clientPath = path.join(gamesRoot, game.id, "client");
-    return express.static(clientPath)(req, res, next);
+  // --- SPA fallback: serve index.html for app routes so client-side routing works ---
+  const spaRoutes = ["/", "/admin", "/admin/", "/play", "/play/"];
+  app.get("*", (req, res, next) => {
+    if (!spaRoutes.includes(req.path)) return next();
+    const indexHtml = path.join(publicAppPath, "index.html");
+    res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
   });
 
   app.listen(PORT, async () => {
     const activeGameId = await getActiveGameId();
     console.log("OpenArcade Hub running");
+    console.log(`Landing: http://localhost:${PORT}/`);
     console.log(`Admin: http://localhost:${PORT}/admin`);
-    console.log(`Players: http://localhost:${PORT}/`);
+    console.log(`Play: http://localhost:${PORT}/play`);
     console.log(`Active game: ${activeGameId || "none"}`);
   });
 }

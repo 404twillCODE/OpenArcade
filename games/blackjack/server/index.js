@@ -1,52 +1,14 @@
-const path = require("path");
 const { parseMessage, serializeMessage } = require("../shared/protocol");
+const {
+  createShoe,
+  shuffle,
+  handValue,
+  isBlackjack,
+  dealerShouldHit,
+} = require("../shared/rules");
 
-const SUITS = ["hearts", "diamonds", "clubs", "spades"];
-const VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"];
-
-function createDeck() {
-  const deck = [];
-  for (const suit of SUITS) {
-    for (const value of VALUES) {
-      deck.push({ suit, value });
-    }
-  }
-  return deck;
-}
-
-function shuffle(deck) {
-  const out = [...deck];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
-function handValue(cards) {
-  if (!cards || cards.length === 0) return 0;
-  let score = 0;
-  let aces = 0;
-  for (const c of cards) {
-    if (c.value === "ace") {
-      aces++;
-      score += 11;
-    } else if (["king", "queen", "jack"].includes(c.value)) {
-      score += 10;
-    } else {
-      score += parseInt(c.value, 10);
-    }
-  }
-  while (score > 21 && aces > 0) {
-    score -= 10;
-    aces--;
-  }
-  return score;
-}
-
-function isBlackjack(cards) {
-  return cards.length === 2 && handValue(cards) === 21;
-}
+const SHOE_DECKS = 4;
+const ROOM_CODE_LENGTH = 4;
 
 function shortId() {
   return Math.random().toString(36).slice(2, 10);
@@ -58,27 +20,37 @@ function send(ws, msg) {
   }
 }
 
-/**
- * Register the blackjack game with the hub.
- * @param {{ wss: import('ws').WebSocketServer, pathPrefix: string, storage: object, broadcast: (msg: object) => void, log: (msg: string) => void }} opts
- */
 function register({ wss, pathPrefix, storage, broadcast, log }) {
-  const gameState = {
-    phase: "lobby",
-    players: [],
-    dealerHand: [],
-    dealerScore: 0,
-    currentTurn: null,
-    results: null,
-    deck: [],
-  };
+  const rooms = new Map();
+  const connections = new Map(); // ws -> { roomCode, playerId }
 
-  /** @type {Map<import('ws').WebSocket, string>} ws -> playerId */
-  const connections = new Map();
-  /** @type {Map<string, import('ws').WebSocket>} playerId -> ws */
-  const playerIdToWs = new Map();
+  function createRoomState(roomCode) {
+    return {
+      roomCode,
+      phase: "lobby",
+      players: [],
+      dealerHand: [],
+      dealerScore: 0,
+      currentTurn: null,
+      results: null,
+      deck: [],
+    };
+  }
 
-  function getStatePayload() {
+  function createRoom() {
+    let code = "";
+    do {
+      code = Array.from({ length: ROOM_CODE_LENGTH }, () =>
+        Math.random().toString(36).slice(2, 3).toUpperCase()
+      ).join("");
+    } while (rooms.has(code));
+
+    const state = createRoomState(code);
+    rooms.set(code, state);
+    return state;
+  }
+
+  function getStatePayload(gameState) {
     const players = gameState.players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -88,31 +60,55 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
       connected: p.connected,
       isHost: p.isHost,
     }));
+    const hideHole =
+      (gameState.phase === "lobby" || gameState.phase === "playing") &&
+      gameState.dealerHand.length >= 2;
     const dealerHand =
-      gameState.phase === "lobby" || gameState.phase === "playing"
-        ? gameState.dealerHand.length > 0
-          ? [gameState.dealerHand[0], { suit: "back", value: "hidden" }]
-          : []
+      hideHole && gameState.dealerHand.length >= 2
+        ? [gameState.dealerHand[0], { suit: "back", value: "hidden" }]
         : gameState.dealerHand;
+    const dealerValue =
+      gameState.phase === "dealer" || gameState.phase === "results"
+        ? gameState.dealerScore
+        : gameState.dealerHand[0]
+          ? handValue([gameState.dealerHand[0]])
+          : 0;
+    const phaseMap = {
+      lobby: "lobby",
+      playing: "playerTurn",
+      dealer: "dealerTurn",
+      results: "roundOver",
+    };
     return {
-      phase: gameState.phase,
+      roomCode: gameState.roomCode,
+      phase: phaseMap[gameState.phase] || gameState.phase,
       players,
       dealerHand,
-      dealerScore: gameState.phase === "dealer" || gameState.phase === "results" ? gameState.dealerScore : (gameState.dealerHand[0] ? handValue([gameState.dealerHand[0]]) : 0),
+      dealerScore: dealerValue,
       currentTurn: gameState.currentTurn,
       results: gameState.results,
     };
   }
 
-  function broadcastState() {
-    broadcast({ type: "state", state: getStatePayload() });
+  function broadcastState(gameState) {
+    const payload = getStatePayload(gameState);
+    gameState.players.forEach((p) => {
+      if (!p.connected) return;
+      const entry = [...connections.entries()].find(
+        ([, info]) => info.playerId === p.id && info.roomCode === gameState.roomCode
+      );
+      if (entry) {
+        const [ws] = entry;
+        send(ws, { type: "state", state: payload });
+      }
+    });
   }
 
-  function startRound() {
+  function startRound(gameState) {
     if (gameState.phase !== "lobby") return false;
     const active = gameState.players.filter((p) => p.connected);
     if (active.length === 0) return false;
-    gameState.deck = shuffle(createDeck());
+    gameState.deck = shuffle(createShoe(SHOE_DECKS));
     gameState.dealerHand = [];
     gameState.dealerScore = 0;
     gameState.results = null;
@@ -134,29 +130,29 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
       gameState.dealerHand.push(card);
       gameState.dealerScore = handValue(gameState.dealerHand);
     }
-    const firstToAct = toDeal.find((p) => !p.status || p.status !== "blackjack");
-    gameState.currentTurn = firstToAct ? firstToAct.id : null;
+    const first = toDeal.find((p) => !p.status || p.status !== "blackjack");
+    gameState.currentTurn = first ? first.id : null;
     if (!gameState.currentTurn) {
       gameState.phase = "dealer";
       gameState.currentTurn = "dealer";
-      runDealerTurn();
+      runDealer();
     }
-    broadcastState();
+    broadcastState(gameState);
     return true;
   }
 
-  function runDealerTurn() {
+  function runDealer(gameState) {
     gameState.phase = "dealer";
     gameState.currentTurn = "dealer";
-    while (gameState.dealerScore < 17) {
+    while (dealerShouldHit(gameState.dealerScore)) {
       const card = gameState.deck.pop();
       gameState.dealerHand.push(card);
       gameState.dealerScore = handValue(gameState.dealerHand);
     }
-    settle();
+    settle(gameState);
   }
 
-  function settle() {
+  function settle(gameState) {
     gameState.phase = "results";
     gameState.currentTurn = null;
     const dealerBJ = isBlackjack(gameState.dealerHand);
@@ -180,10 +176,10 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
       }
     }
     gameState.results = results;
-    broadcastState();
+    broadcastState(gameState);
   }
 
-  function nextTurn() {
+  function nextTurn(gameState) {
     const order = gameState.players.filter((p) => p.connected);
     const idx = order.findIndex((p) => p.id === gameState.currentTurn);
     let next = null;
@@ -196,22 +192,34 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
     }
     if (next) {
       gameState.currentTurn = next.id;
-      broadcastState();
+      broadcastState(gameState);
     } else {
-      runDealerTurn();
+      runDealer(gameState);
     }
   }
 
-  wss.on("connection", (ws, request) => {
+  wss.on("connection", (ws) => {
     log("connection");
 
     ws.on("message", (data) => {
       const msg = parseMessage(data.toString());
       if (!msg || !msg.type) return;
 
-      if (msg.type === "join") {
+      if (msg.type === "createRoom" || msg.type === "joinRoom") {
         const name = (msg.name || "").trim().slice(0, 32) || "Player";
         const existingId = msg.playerId || null;
+        let gameState;
+        if (msg.type === "createRoom") {
+          gameState = createRoom();
+        } else {
+          const code = String(msg.roomCode || "").trim().toUpperCase();
+          gameState = rooms.get(code);
+          if (!gameState) {
+            send(ws, { type: "error", message: "Room not found." });
+            return;
+          }
+        }
+
         let player = existingId ? gameState.players.find((p) => p.id === existingId) : null;
         if (player) {
           if (player.connected) {
@@ -220,9 +228,8 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
           }
           player.connected = true;
           player.name = name;
-          playerIdToWs.set(player.id, ws);
-          connections.set(ws, player.id);
-          log(`rejoin: ${name} (${player.id})`);
+          connections.set(ws, { roomCode: gameState.roomCode, playerId: player.id });
+          log(`rejoin: ${name} (${player.id}) in ${gameState.roomCode}`);
         } else {
           const id = shortId();
           const isHost = gameState.players.length === 0;
@@ -236,24 +243,30 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
             isHost,
           };
           gameState.players.push(player);
-          playerIdToWs.set(id, ws);
-          connections.set(ws, id);
-          log(`join: ${name} (${id})`);
+          connections.set(ws, { roomCode: gameState.roomCode, playerId: id });
+          log(`join: ${name} (${id}) in ${gameState.roomCode}`);
         }
         send(ws, { type: "you", playerId: player.id });
-        send(ws, { type: "state", state: getStatePayload() });
+        send(ws, { type: "room", roomCode: gameState.roomCode });
+        send(ws, { type: "state", state: getStatePayload(gameState) });
         send(ws, { type: "toast", message: "Joined the table." });
-        broadcastState();
+        broadcastState(gameState);
         return;
       }
 
-      const playerId = connections.get(ws);
-      if (!playerId) {
-        send(ws, { type: "error", message: "Send join first." });
+      const info = connections.get(ws);
+      if (!info) {
+        send(ws, { type: "error", message: "Create or join a room first." });
         return;
       }
 
-      const player = gameState.players.find((p) => p.id === playerId);
+      const gameState = rooms.get(info.roomCode);
+      if (!gameState) {
+        send(ws, { type: "error", message: "Room not found." });
+        return;
+      }
+
+      const player = gameState.players.find((p) => p.id === info.playerId);
       if (!player) return;
 
       if (msg.type === "startRound") {
@@ -265,8 +278,14 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
           send(ws, { type: "error", message: "Only host can start." });
           return;
         }
-        if (startRound()) {
-          broadcast({ type: "toast", message: "Round started." });
+        if (startRound(gameState)) {
+          gameState.players.forEach((p) => {
+            if (!p.connected) return;
+            const entry = [...connections.entries()].find(
+              ([, c]) => c.playerId === p.id && c.roomCode === gameState.roomCode
+            );
+            if (entry) send(entry[0], { type: "toast", message: "Round started." });
+          });
         } else {
           send(ws, { type: "error", message: "Could not start round." });
         }
@@ -289,8 +308,14 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
         gameState.currentTurn = null;
         gameState.results = null;
         gameState.deck = [];
-        broadcast({ type: "toast", message: "Table reset." });
-        broadcastState();
+        gameState.players.forEach((p) => {
+          if (!p.connected) return;
+          const entry = [...connections.entries()].find(
+            ([, c]) => c.playerId === p.id && c.roomCode === gameState.roomCode
+          );
+          if (entry) send(entry[0], { type: "toast", message: "Table reset." });
+        });
+        broadcastState(gameState);
         return;
       }
 
@@ -309,29 +334,27 @@ function register({ wss, pathPrefix, storage, broadcast, log }) {
           player.hand.push(card);
           player.score = handValue(player.hand);
           if (player.score > 21) player.status = "busted";
-          broadcastState();
-          if (player.status === "busted") {
-            nextTurn();
-          }
+          broadcastState(gameState);
+          if (player.status === "busted") nextTurn(gameState);
         } else {
           player.status = "stood";
-          broadcastState();
-          nextTurn();
+          broadcastState(gameState);
+          nextTurn(gameState);
         }
       }
     });
 
     ws.on("close", () => {
-      const playerId = connections.get(ws);
+      const info = connections.get(ws);
       connections.delete(ws);
-      if (playerId) {
-        playerIdToWs.delete(playerId);
-        const player = gameState.players.find((p) => p.id === playerId);
-        if (player) {
-          player.connected = false;
-          log(`disconnect: ${player.name}`);
-          broadcastState();
-        }
+      if (!info) return;
+      const gameState = rooms.get(info.roomCode);
+      if (!gameState) return;
+      const player = gameState.players.find((p) => p.id === info.playerId);
+      if (player) {
+        player.connected = false;
+        log(`disconnect: ${player.name} in ${gameState.roomCode}`);
+        broadcastState(gameState);
       }
     });
   });

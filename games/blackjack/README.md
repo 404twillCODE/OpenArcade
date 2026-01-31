@@ -1,31 +1,39 @@
 # Blackjack
 
-Multiplayer blackjack for OpenArcade. Real-time, authoritative server; clean dark UI.
+Multiplayer blackjack for OpenArcade. Join with a display name, play full rounds with hit/stand, dealer follows house rules.
 
-## Structure
+## How to run via hub
 
-- `manifest.json` — Game metadata
-- `client/` — Built client (served by hub at `/game/blackjack/`). Generated from `client-src/` by `npm run build` in `client-src/` or `npm run build:games` from repo root.
-- `client-src/` — Vite + TypeScript source; build outputs to `../client`.
-- `server/` — Game logic (loaded by hub at `/ws/blackjack`)
-- `shared/` — Protocol types (message contract)
+1. From repo root: `npm run start` (or use `scripts/start.ps1` on Windows).
+2. Open `http://localhost:3000/play` and select Blackjack, or go directly to `http://localhost:3000/game/blackjack/`.
+3. Enter a display name, then **Create table** to get a room code. Share that code or open a second tab and **Join table** with the code.
 
-## How to run and test locally
+## How to dev the game client
 
-1. If you changed `client-src/`, build the client: from repo root run `npm run build:games`, or from `games/blackjack/client-src/` run `npm run build`.
-2. From the repo root, start the hub (e.g. run `start.bat` or `cd hub && npm start`).
-3. Open the Play URL (e.g. `http://localhost:3000/play`).
-4. Ensure Blackjack is the active game (Admin → set active game if needed).
-5. Open the game in two browser tabs (or two devices on the same LAN).
-6. In each tab: enter a display name → **Join table**.
-7. In the first tab (host): click **Start round**. Play: **Hit** / **Stand** when it’s your turn.
-8. After the round, host can **Start round** again or **Reset table**.
+1. From repo root, build once: `npm run build:games` (builds all games with `client-src`).
+2. To work on the blackjack client with live reload, from `games/blackjack/client-src` run: `npm run dev`. Point your browser to the Vite dev server (e.g. `http://localhost:5173`). For multiplayer you still need the hub running so the dev client can connect to `ws://localhost:3000/ws/blackjack`. You can proxy in `vite.config.ts` or run the hub and use the play page with the built client at `http://localhost:3000/game/blackjack/`.
 
-## Reconnecting
+## How multiplayer works
 
-Your display name and player id are stored in `localStorage`. If you disconnect, reconnect (refresh or reopen) and **Join table** again with the same name; you rejoin the same seat when the server matches your stored player id.
+- **WebSocket endpoint:** `ws://<host>/ws/blackjack` (same origin as the hub, e.g. `ws://localhost:3000/ws/blackjack`).
+- The hub loads `games/blackjack/server/index.js` and calls its `register({ wss, pathPrefix, storage, broadcast, log })`. The game server is **server-authoritative**: clients send intents (`createRoom`, `joinRoom`, `startRound`, `action: hit|stand`, `reset`); the server holds the deck, deals cards, runs dealer logic, and broadcasts `state` to all clients in that room.
 
-## Protocol (summary)
+## Rules (V1)
 
-- **Client → server:** `join` (name, optional playerId), `action` (hit/stand), `startRound`, `reset`
-- **Server → client:** `state` (full game state), `toast`, `error`, `you` (your playerId after join)
+- **Dealer stands on soft 17** (dealer does not hit when total is 17 with an ace counting as 11). Documented here; implementation in `shared/rules.js` (`dealerShouldHit(value)` returns `value < 17`).
+- Shoe: 4 decks, shuffled at start of each round.
+- Each player and dealer get 2 cards; dealer’s second card is hidden until dealer turn.
+- Turn-based: each player can **Hit** or **Stand**. After all players act, dealer reveals hole card and hits until total ≥ 17.
+- Outcomes: **win**, **lose**, **push**, **blackjack**, **bust**. Win/loss/push shown in a result banner after the round.
+
+## Host-only controls
+
+- **Start round:** only the host (first joiner) can start a round when phase is `lobby`.
+- **Reset table:** only the host can reset the table back to lobby (clears hands and results, does not remove players).
+
+## File layout
+
+- `client/` — Built static client (output of `npm run build` in `client-src`). Served by hub at `/game/blackjack/`.
+- `client-src/` — React + TypeScript (Vite) source; build target is `../client`.
+- `shared/` — `protocol.js`, `rules.js` (used by server); `types.ts` (used by client for types).
+- `server/index.js` — Node module with `register()` for the hub’s WebSocket runtime.

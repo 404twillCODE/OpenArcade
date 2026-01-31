@@ -1,7 +1,8 @@
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// Served under /game/blackjack/ — use relative base so assets resolve correctly.
 export default defineConfig({
+  plugins: [react()],
   base: "./",
   build: {
     outDir: "../client",

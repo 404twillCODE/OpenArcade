@@ -3,50 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Blackjack — OpenArcade</title>
-    <script type="module" crossorigin src="./assets/index-Bd54XP3m.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-95y3rE14.css">
+    <title>Blackjack — OpenArcade</title>
+    <script type="module" crossorigin src="./assets/index-CqwMRZw2.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BzvFQgsq.css">
   </head>
   <body>
-    <div class="app">
-      <header class="header">
-        <h1 class="title">Blackjack</h1>
-        <div class="status-pill" id="status-pill" aria-live="polite">Connecting…</div>
-      </header>
-
-      <main class="main">
-        <div class="join-screen" id="join-screen">
-          <div class="join-card">
-            <label for="name-input">Display name</label>
-            <input type="text" id="name-input" maxlength="32" placeholder="Your name" autocomplete="off" />
-            <button type="button" id="join-btn" class="btn btn-primary">Join table</button>
-          </div>
-        </div>
-
-        <div class="game-screen hidden" id="game-screen">
-          <div class="table">
-            <section class="dealer-area" aria-label="Dealer">
-              <h2 class="area-label">Dealer</h2>
-              <div class="dealer-score" id="dealer-score"></div>
-              <div class="cards dealer-cards" id="dealer-cards"></div>
-            </section>
-
-            <section class="players-area" id="players-area" aria-label="Players"></section>
-
-            <section class="controls" id="controls">
-              <button type="button" id="hit-btn" class="btn btn-action" disabled>Hit</button>
-              <button type="button" id="stand-btn" class="btn btn-action" disabled>Stand</button>
-            </section>
-
-            <section class="host-controls" id="host-controls">
-              <button type="button" id="start-round-btn" class="btn btn-secondary" disabled>Start round</button>
-              <button type="button" id="reset-btn" class="btn btn-secondary" disabled>Reset table</button>
-            </section>
-
-            <div class="result-banner hidden" id="result-banner" aria-live="polite"></div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <div id="root"></div>
   </body>
 </html>

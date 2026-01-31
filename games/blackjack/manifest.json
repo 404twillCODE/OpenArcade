@@ -1,8 +1,8 @@
 {
   "id": "blackjack",
   "name": "Blackjack",
-  "version": "0.1.0",
-  "description": "Multiplayer blackjack with authoritative server.",
-  "author": "OpenArcade Contributors",
+  "version": "1.0.0",
+  "description": "Classic multiplayer blackjack. Join the table, get dealt two cards, hit or stand. Dealer stands on soft 17.",
+  "author": "OpenArcade",
   "wip": false
 }

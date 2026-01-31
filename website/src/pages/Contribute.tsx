@@ -11,7 +11,7 @@ export default function Contribute() {
           Contribute a game
         </h1>
         <p className="mt-3 text-lg leading-relaxed text-zinc-400">
-          Add a new game by opening a pull request. Each game lives in its own folder with a manifest and client. Both static games (hand-authored <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client/</code>) and built games (Vite + TypeScript via <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client-src/</code>) are supported.
+          Add a new game by opening a pull request. Each game lives in its own folder with a manifest and client. Both static games (hand-authored <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client/</code>) and built games (React + TypeScript via Vite in <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client-src/</code>) are supported.
         </p>
       </div>
 
@@ -37,6 +37,14 @@ export default function Contribute() {
       index.html
       style.css
       main.js
+    client-src/
+      index.html
+      package.json
+      vite.config.ts
+      src/
+        main.tsx
+        App.tsx
+        index.css
     README.md`}
               </CodeBlock>
             </div>

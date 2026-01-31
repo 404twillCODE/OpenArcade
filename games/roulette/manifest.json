@@ -1,0 +1,8 @@
+{
+  "id": "roulette",
+  "name": "Roulette",
+  "version": "0.1.0",
+  "description": "Classic casino wheel game. Place bets and spin. (WIP)",
+  "author": "OpenArcade Contributors",
+  "wip": true
+}

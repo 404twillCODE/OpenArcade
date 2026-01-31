@@ -1,3 +1,5 @@
+import { surface } from "../styles/tokens";
+
 interface SkeletonProps {
   className?: string;
 }
@@ -14,7 +16,7 @@ export function Skeleton({ className = "" }: SkeletonProps) {
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+    <div className={`${surface.card} bg-zinc-900/50 p-6`}>
       <Skeleton className="mb-3 h-5 w-2/3" />
       <Skeleton className="mb-4 h-4 w-full" />
       <Skeleton className="mb-4 h-4 w-4/5" />

@@ -40,3 +40,7 @@ jobs:
       - name: Validate game manifests
         run: npm run validate:manifests
         working-directory: hub
+
+      - name: Health check (server + routes)
+        run: npm run healthcheck
+        working-directory: hub

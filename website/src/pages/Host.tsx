@@ -22,14 +22,41 @@ export default function Host() {
               <Terminal className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="mb-4 leading-relaxed text-zinc-400">
-                Clone the repo, then install and start the hub. The terminal will print the Admin and Player URLs.
+              <p className="mb-2 font-medium text-zinc-200">
+                Windows
               </p>
+              <p className="mb-4 leading-relaxed text-zinc-400">
+                Download the repo (ZIP or clone), extract, then <strong>double-click <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.bat</code></strong> in the repo root.
+              </p>
+              <p className="mb-2 font-medium text-zinc-200">
+                macOS
+              </p>
+              <p className="mb-4 leading-relaxed text-zinc-400">
+                Download the repo, extract, then <strong>double-click <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.command</code></strong> (or in Terminal run <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">./start.sh</code> from the repo root). First time, you may need to right‑click <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.command</code> → Open.
+              </p>
+              <p className="mb-2 font-medium text-zinc-200">
+                Linux
+              </p>
+              <p className="mb-4 leading-relaxed text-zinc-400">
+                Download the repo, extract, then in a terminal run <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">./start.sh</code> from the repo root. If needed, run <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">chmod +x start.sh start-dev.sh start.command</code> first.
+              </p>
+              <p className="mb-2 font-medium text-zinc-200">
+                What happens next
+              </p>
+              <ul className="mb-4 list-inside list-disc space-y-1 text-zinc-400">
+                <li>Installs dependencies (first run)</li>
+                <li>Builds the Hub UI (first run)</li>
+                <li>Starts the hub</li>
+                <li>Shows URLs: Landing, Admin, Play</li>
+              </ul>
               <CodeBlock>
-{`git clone https://github.com/404twillcode/OpenArcade.git
-cd OpenArcade/hub
-npm install
-npm start`}
+{`# Clone (or download ZIP and extract)
+git clone https://github.com/404twillcode/OpenArcade.git
+cd OpenArcade
+
+# Windows: double-click start.bat
+# macOS: double-click start.command or run ./start.sh
+# Linux: ./start.sh`}
               </CodeBlock>
             </div>
           </div>
@@ -44,7 +71,7 @@ npm start`}
             </div>
             <div className="min-w-0 flex-1">
               <p className="leading-relaxed text-zinc-400">
-                Open the Admin URL in your browser. You’ll see a list of games; click “Set Active” for the one you want. Players use the Player URL to open that game.
+                Open the <strong>Admin</strong> URL in your browser (on the host machine only — Admin is localhost-only for security). Click “Set Active” for the game you want. Share the <strong>Play</strong> URL with players; they use <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">/play</code> to join. Admin is host-only; players should use the Play link.
               </p>
             </div>
           </div>

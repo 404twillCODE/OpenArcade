@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Play, Settings, ExternalLink } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
+import { Layout } from "../components/Layout";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { StatPill } from "../components/StatPill";
 import { CopyButton } from "../components/CopyButton";
+import { text, spacing } from "../styles/tokens";
 import { fetchGames, fetchState, type GameManifest } from "../api";
 
 const container = {
@@ -46,7 +48,7 @@ export function Landing() {
       {/* Hero with subtle dark gradient + faint highlight */}
       <div className="relative overflow-hidden">
         <div className="vignette absolute inset-0 pointer-events-none" aria-hidden />
-        <div className="container-page relative py-20 sm:py-24">
+        <Layout className="relative py-20 sm:py-24">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,12 +89,12 @@ export function Landing() {
               </Link>
             </div>
           </motion.div>
-        </div>
+        </Layout>
       </div>
 
       {/* How it works */}
-      <div className="container-page py-16 sm:py-20">
-        <h2 className="text-center text-sm font-semibold uppercase tracking-wider text-zinc-500">
+      <Layout className="py-16 sm:py-20">
+        <h2 className={`text-center ${text.label}`}>
           How it works
         </h2>
         <motion.div
@@ -133,10 +135,10 @@ export function Landing() {
             </motion.div>
           ))}
         </motion.div>
-      </div>
+      </Layout>
 
       {/* Quick actions */}
-      <div className="container-page pb-20 sm:pb-24">
+      <Layout className={`${spacing.section} pb-20 sm:pb-24`}>
         <Card noHover className="p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-zinc-100">
             Quick actions
@@ -169,7 +171,7 @@ export function Landing() {
             </Link>
           </div>
         </Card>
-      </div>
+      </Layout>
     </PageTransition>
   );
 }

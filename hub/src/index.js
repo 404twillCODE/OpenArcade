@@ -1,10 +1,22 @@
 const express = require("express");
 const path = require("path");
+const os = require("os");
 
 const { loadGames, gamesRoot } = require("./gameLoader");
 const { ensureStateFile, getActiveGameId, setActiveGameId } = require("./storage");
 
 const PORT = process.env.PORT || 3000;
+
+/** Detect a LAN IPv4 address for the startup banner. */
+function getLanIp() {
+  const ifaces = os.networkInterfaces();
+  for (const name of Object.keys(ifaces)) {
+    for (const iface of ifaces[name]) {
+      if (iface.family === "IPv4" && !iface.internal) return iface.address;
+    }
+  }
+  return null;
+}
 
 function getDefaultActiveGameId(games) {
   const blackjack = games.find((game) => game.id === "blackjack");
@@ -12,6 +24,24 @@ function getDefaultActiveGameId(games) {
     return blackjack.id;
   }
   return games.length > 0 ? games[0].id : null;
+}
+
+/** True if request is from loopback (127.0.0.1, ::1, ::ffff:127.0.0.1). Does not use X-Forwarded-For. */
+function isLoopback(req) {
+  const addr = req.socket.remoteAddress || req.ip || "";
+  return (
+    addr === "127.0.0.1" ||
+    addr === "::1" ||
+    addr === "::ffff:127.0.0.1"
+  );
+}
+
+/** Middleware: allow only host (loopback). Others get 403. */
+function adminOnly(req, res, next) {
+  if (isLoopback(req)) return next();
+  res.status(403).json({
+    error: "Admin is only available on the host machine.",
+  });
 }
 
 async function start() {
@@ -40,7 +70,7 @@ async function start() {
     res.json({ activeGameId });
   });
 
-  app.post("/api/active-game", async (req, res) => {
+  app.post("/api/active-game", adminOnly, async (req, res) => {
     const { gameId } = req.body || {};
     const exists = games.some((game) => game.id === gameId);
     if (!exists) {
@@ -65,21 +95,39 @@ async function start() {
   // --- React SPA: static assets from hub/public/app ---
   app.use(express.static(publicAppPath));
 
-  // --- SPA fallback: serve index.html for app routes so client-side routing works ---
-  const spaRoutes = ["/", "/admin", "/admin/", "/play", "/play/"];
+  // --- Admin SPA: host-only; serve index.html for /admin and /admin/ ---
+  const indexHtml = path.join(publicAppPath, "index.html");
+  app.get(["/admin", "/admin/"], adminOnly, (req, res, next) => {
+    res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
+  });
+
+  // --- SPA fallback: serve index.html for remaining app routes (/, /play, /play/) ---
+  const spaRoutes = ["/", "/play", "/play/"];
   app.get("*", (req, res, next) => {
     if (!spaRoutes.includes(req.path)) return next();
-    const indexHtml = path.join(publicAppPath, "index.html");
     res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
   });
 
   app.listen(PORT, async () => {
-    const activeGameId = await getActiveGameId();
-    console.log("OpenArcade Hub running");
-    console.log(`Landing: http://localhost:${PORT}/`);
-    console.log(`Admin: http://localhost:${PORT}/admin`);
-    console.log(`Play: http://localhost:${PORT}/play`);
-    console.log(`Active game: ${activeGameId || "none"}`);
+    const base = `http://localhost:${PORT}`;
+    const lanIp = getLanIp();
+    const playUrl = process.env.PLAY_URL || "";
+    let activeGameId = "unknown";
+    try {
+      activeGameId = (await getActiveGameId()) || "unknown";
+    } catch {
+      // ignore
+    }
+    console.log("");
+    console.log("  OpenArcade Hub");
+    console.log("  —");
+    console.log(`  Landing (local):  ${base}/`);
+    if (lanIp) console.log(`  Landing (LAN):    http://${lanIp}:${PORT}/`);
+    console.log(`  Admin (local):    ${base}/admin  (host-only)`);
+    console.log(`  Play (local):     ${base}/play`);
+    if (playUrl) console.log(`  Play (share):     ${playUrl}`);
+    console.log(`  Active game:      ${activeGameId}`);
+    console.log("");
   });
 }
 

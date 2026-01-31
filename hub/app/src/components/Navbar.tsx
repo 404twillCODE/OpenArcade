@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Gamepad2 } from "lucide-react";
+import { layout } from "../styles/tokens";
 
 export function Navbar() {
   const location = useLocation();
@@ -17,7 +18,7 @@ export function Navbar() {
       role="navigation"
       aria-label="Main"
     >
-      <div className="container-page flex h-14 items-center justify-between gap-4">
+      <div className={`${layout.container} flex h-14 items-center justify-between gap-4`}>
         <Link
           to="/"
           className="flex items-center gap-2 text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 rounded-lg"

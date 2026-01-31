@@ -1,0 +1,8 @@
+{
+  "id": "would-you-rather",
+  "name": "Would You Rather",
+  "version": "0.1.0",
+  "description": "Pick between two options and see what others choose. (WIP)",
+  "author": "OpenArcade Contributors",
+  "wip": true
+}

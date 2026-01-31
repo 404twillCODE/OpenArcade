@@ -25,13 +25,14 @@ Required manifest fields:
 
 ## Local testing
 
-```bash
-cd hub
-npm install
-npm start
-```
-
-Then open the Admin and Player URLs printed in the terminal.
+- **Windows:** Double-click `start.bat` in the repo root. It installs deps, builds the UI, and starts the hub. Open the URLs it prints.
+- **Other:** From the repo root, run:
+  ```bash
+  cd hub
+  npm install
+  npm start
+  ```
+  Then open the Admin and Player URLs printed in the terminal.
 
 ## Code of Conduct
 

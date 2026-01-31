@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { surface, motion as motionTokens } from "../styles/tokens";
 
 interface CardProps {
   children: React.ReactNode;
@@ -14,12 +15,12 @@ export function Card({
   return (
     <motion.div
       initial={false}
-      whileHover={noHover ? undefined : { y: -2 }}
-      transition={{ duration: 0.2 }}
+      whileHover={noHover ? undefined : { y: motionTokens.cardLift }}
+      transition={motionTokens.pageTransition}
       className={`
-        rounded-2xl border border-zinc-800/60 bg-zinc-900
+        ${surface.card}
         shadow-card transition-shadow
-        ${noHover ? "" : "hover:shadow-card-hover"}
+        ${noHover ? "" : surface.cardHover}
         ${className}
       `}
     >

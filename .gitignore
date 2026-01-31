@@ -1,3 +1,6 @@
+# Local developer helpers (owner-only, not committed)
+scripts/start-dev.bat
+
 node_modules/
 hub/data/
 website/dist/

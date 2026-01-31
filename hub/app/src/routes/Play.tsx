@@ -3,9 +3,11 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { RotateCw, AlertTriangle, Settings } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
+import { Layout } from "../components/Layout";
 import { Button } from "../components/Button";
 import { PlayBar } from "../components/PlayBar";
 import { EmptyState } from "../components/EmptyState";
+import { border } from "../styles/tokens";
 import { fetchGames, fetchState, type GameManifest } from "../api";
 
 export function Play() {
@@ -99,7 +101,7 @@ export function Play() {
   if (!activeGameId || !activeGame) {
     return (
       <PageTransition>
-        <div className="container-page flex min-h-[50vh] flex-col items-center justify-center py-16">
+        <Layout className="flex min-h-[50vh] flex-col items-center justify-center py-16">
           <EmptyState
             icon={AlertTriangle}
             title="No active game set"
@@ -113,7 +115,7 @@ export function Play() {
               </Link>
             }
           />
-        </div>
+        </Layout>
       </PageTransition>
     );
   }
@@ -133,7 +135,7 @@ export function Play() {
 
         <div className="relative min-h-0 flex-1 p-2 sm:p-4">
           {/* Iframe container: rounded + border on desktop, near edge-to-edge on mobile */}
-          <div className="relative h-full w-full overflow-hidden rounded-lg border border-zinc-800/60 bg-zinc-950 sm:rounded-2xl">
+          <div className={`relative h-full w-full overflow-hidden rounded-lg ${border.frame} bg-zinc-950 sm:rounded-2xl`}>
             {/* Loading overlay */}
             {!iframeLoaded && !iframeError && (
               <motion.div

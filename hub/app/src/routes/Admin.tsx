@@ -1,17 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, Gamepad2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Gamepad2 } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
-import { PageHeader } from "../components/PageHeader";
-import { Card } from "../components/Card";
+import { CategorySection } from "../components/CategorySection";
+import { GameCard } from "../components/GameCard";
 import { Button } from "../components/Button";
-import { Badge } from "../components/Badge";
-import { Input } from "../components/Input";
-import { SegmentedControl, type FilterValue } from "../components/SegmentedControl";
 import { SkeletonCard } from "../components/Skeleton";
 import { EmptyState } from "../components/EmptyState";
 import { Toast, type ToastType } from "../components/Toast";
+import { Layout } from "../components/Layout";
+import { PageHeader } from "../components/PageHeader";
 import {
   fetchGames,
   fetchState,
@@ -19,26 +18,40 @@ import {
   type GameManifest,
 } from "../api";
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.04 },
-  },
+/** Category order for display. Unknown games go to "Other". */
+const CATEGORY_ORDER = ["CASINO", "PARTY", "SOCIAL", "DEBATE", "Other"] as const;
+
+const CATEGORY_BY_ID: Record<string, string> = {
+  blackjack: "CASINO",
+  roulette: "CASINO",
+  poker: "CASINO",
+  uno: "PARTY",
+  "kings-cup": "PARTY",
+  charades: "PARTY",
+  pictionary: "PARTY",
+  "trivia-party": "PARTY",
+  "would-you-rather": "DEBATE",
 };
 
-const item = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0 },
-};
+function getCategory(game: GameManifest): string {
+  return CATEGORY_BY_ID[game.id] ?? "Other";
+}
+
+function groupByCategory(games: GameManifest[]): Map<string, GameManifest[]> {
+  const map = new Map<string, GameManifest[]>();
+  for (const game of games) {
+    const cat = getCategory(game);
+    if (!map.has(cat)) map.set(cat, []);
+    map.get(cat)!.push(game);
+  }
+  return map;
+}
 
 export function Admin() {
   const [games, setGames] = useState<GameManifest[]>([]);
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterValue>("all");
 
   const load = () => {
     setLoading(true);
@@ -55,21 +68,19 @@ export function Admin() {
     load();
   }, []);
 
-  const filteredGames = useMemo(() => {
-    let list = games;
-    if (filter === "wip") list = list.filter((g) => g.wip);
-    if (filter === "ready") list = list.filter((g) => !g.wip);
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (g) =>
-          g.name.toLowerCase().includes(q) ||
-          g.id.toLowerCase().includes(q) ||
-          (g.description && g.description.toLowerCase().includes(q))
-      );
+  const gamesByCategory = useMemo(() => {
+    const map = groupByCategory(games);
+    const ordered: { category: string; games: GameManifest[] }[] = [];
+    for (const cat of CATEGORY_ORDER) {
+      const list = map.get(cat);
+      if (list && list.length > 0) ordered.push({ category: cat, games: list });
     }
-    return list;
-  }, [games, filter, search]);
+    const other = map.get("Other");
+    if (other && other.length > 0 && !ordered.some((o) => o.category === "Other")) {
+      ordered.push({ category: "Other", games: other });
+    }
+    return ordered;
+  }, [games]);
 
   const handleSetActive = (gameId: string) => {
     setActiveGame(gameId)
@@ -85,170 +96,55 @@ export function Admin() {
       });
   };
 
-  const activeGame = games.find((g) => g.id === activeGameId);
-
   return (
     <PageTransition>
-      <div className="container-page py-10 sm:py-12">
+      <Layout className="py-10 sm:py-12">
+        {/* Catalog-style header */}
         <PageHeader
-          title="Admin"
-          subtitle="Manage games and choose what players see."
-          actions={
-            <div className="flex flex-wrap items-center gap-3">
-              <Input
-                value={search}
-                onChange={setSearch}
-                placeholder="Search games…"
-                aria-label="Search games"
-                className="w-48 sm:w-56"
-              />
-              <SegmentedControl value={filter} onChange={setFilter} />
-            </div>
-          }
+          title="Pick a game to host."
+          subtitle="Choose what players will see when they join your hub."
         />
 
-        {/* Active game highlight panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="mt-10"
-        >
-          <Card noHover className="border-zinc-800/80 bg-zinc-900/60 p-6 sm:p-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Active game
-                </p>
-                <p className="mt-2 text-lg font-semibold text-zinc-100">
-                  {activeGameId
-                    ? activeGame?.name ?? activeGameId
-                    : "None set"}
-                </p>
-                {activeGame?.description && (
-                  <p className="mt-2 line-clamp-2 text-sm text-zinc-500">
-                    {activeGame.description}
-                  </p>
-                )}
-                {activeGame && (
-                  <div className="mt-3">
-                    {activeGame.wip ? (
-                      <Badge variant="wip">WIP</Badge>
-                    ) : (
-                      <Badge variant="ready">Ready</Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-              {activeGameId && (
-                <Link to="/play">
-                  <Button variant="primary" className="gap-2 shrink-0">
-                    <Play className="h-4 w-4" aria-hidden />
-                    Open Play
-                  </Button>
+        {loading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : games.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <EmptyState
+              icon={Gamepad2}
+              title="No games installed"
+              description="Add games to the /games folder with a manifest.json."
+              actions={
+                <Link to="/">
+                  <Button variant="secondary">Go to Hub</Button>
                 </Link>
-              )}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Games grid */}
-        <div className="mt-10">
-          <h2 className="text-sm font-semibold text-zinc-500">Games</h2>
-
-          {loading ? (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <SkeletonCard key={i} />
+              }
+            />
+          </motion.div>
+        ) : (
+          <div className="mb-10">
+            {gamesByCategory.map(({ category, games: sectionGames }) => (
+            <CategorySection key={category} label={category}>
+              {sectionGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  isActive={activeGameId === game.id}
+                  onSetActive={handleSetActive}
+                />
               ))}
-            </div>
-          ) : filteredGames.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-8"
-            >
-              <EmptyState
-                icon={Gamepad2}
-                title={games.length === 0 ? "No games installed" : "No games match your search"}
-                description={
-                  games.length === 0
-                    ? "Add games to the /games folder with a manifest.json."
-                    : "Try a different search or filter."
-                }
-                actions={
-                  games.length === 0 ? (
-                    <Link to="/">
-                      <Button variant="secondary">Go to Hub</Button>
-                    </Link>
-                  ) : undefined
-                }
-              />
-            </motion.div>
-          ) : (
-            <motion.ul
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              <AnimatePresence mode="popLayout">
-                {filteredGames.map((game) => (
-                  <motion.li key={game.id} variants={item} layout>
-                    <Card className="p-6">
-                      <div className="flex flex-col gap-4">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-semibold text-zinc-100">
-                              {game.name}
-                            </span>
-                            {game.version && (
-                              <span className="text-xs text-zinc-500">
-                                v{game.version}
-                              </span>
-                            )}
-                            {game.wip ? (
-                              <Badge variant="wip">WIP</Badge>
-                            ) : (
-                              <Badge variant="ready">Ready</Badge>
-                            )}
-                          </div>
-                          {game.description && (
-                            <p className="mt-2 line-clamp-2 text-sm text-zinc-500">
-                              {game.description}
-                            </p>
-                          )}
-                          {game.author && (
-                            <p className="mt-2 text-xs text-zinc-500">
-                              {game.author}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          variant={activeGameId === game.id ? "primary" : "secondary"}
-                          onClick={() => handleSetActive(game.id)}
-                          disabled={activeGameId === game.id}
-                          className="w-full gap-2"
-                        >
-                          {activeGameId === game.id ? (
-                            "Active"
-                          ) : (
-                            <>
-                              <Play className="h-4 w-4" aria-hidden />
-                              Set active
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </Card>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </motion.ul>
-          )}
-        </div>
-      </div>
+            </CategorySection>
+            ))}
+          </div>
+        )}
+      </Layout>
 
       <Toast
         message={toast?.message ?? ""}

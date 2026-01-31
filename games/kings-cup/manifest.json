@@ -1,0 +1,8 @@
+{
+  "id": "kings-cup",
+  "name": "King's Cup",
+  "version": "0.1.0",
+  "description": "Card-based party game with rules per card. (WIP)",
+  "author": "OpenArcade Contributors",
+  "wip": true
+}

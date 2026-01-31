@@ -1,0 +1,8 @@
+{
+  "id": "uno",
+  "name": "UNO",
+  "version": "0.1.0",
+  "description": "Family card game—match colors and numbers, use action cards. (WIP)",
+  "author": "OpenArcade Contributors",
+  "wip": true
+}

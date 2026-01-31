@@ -10,7 +10,8 @@
     "build:ui": "npm run build --prefix app",
     "dev": "node src/index.js",
     "dev:ui": "npm run dev --prefix app",
-    "validate:manifests": "node scripts/validateManifests.js"
+    "validate:manifests": "node scripts/validateManifests.js",
+    "healthcheck": "node scripts/healthcheck.js"
   },
   "dependencies": {
     "express": "^4.19.2"

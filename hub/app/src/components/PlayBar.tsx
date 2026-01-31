@@ -1,6 +1,7 @@
 import { Maximize2, RotateCw } from "lucide-react";
 import { IconButton } from "./IconButton";
 import { CopyButton } from "./CopyButton";
+import { border, text } from "../styles/tokens";
 
 interface PlayBarProps {
   gameName: string;
@@ -18,9 +19,9 @@ export function PlayBar({
   onCopyShare,
 }: PlayBarProps) {
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-b border-zinc-800 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+    <div className={`flex shrink-0 flex-col gap-2 ${border.bar} ${border.barBg} px-4 py-3 sm:flex-row sm:items-center sm:justify-between`}>
       <div className="flex items-center justify-between gap-3 sm:justify-start">
-        <h2 className="text-sm font-semibold text-zinc-200 truncate">
+        <h2 className={`text-sm font-semibold truncate ${text.primary}`}>
           {gameName}
         </h2>
         <div className="flex items-center gap-1">
@@ -44,7 +45,7 @@ export function PlayBar({
           />
         </div>
       </div>
-      <p className="text-xs text-zinc-500">
+      <p className={`text-xs ${text.muted}`}>
         Share this link with friends
       </p>
     </div>

@@ -1,0 +1,8 @@
+{
+  "id": "poker",
+  "name": "Poker",
+  "version": "0.1.0",
+  "description": "Classic card game with betting and hand rankings. (WIP)",
+  "author": "OpenArcade Contributors",
+  "wip": true
+}

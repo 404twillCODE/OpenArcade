@@ -1,11 +1,16 @@
 const express = require("express");
+const http = require("http");
 const path = require("path");
 const os = require("os");
+const { WebSocketServer } = require("ws");
 
 const { loadGames, gamesRoot } = require("./gameLoader");
 const { ensureStateFile, getActiveGameId, setActiveGameId } = require("./storage");
 
 const PORT = process.env.PORT || 3000;
+
+/** Map gameId -> { wss, module } for per-game WebSocket servers. */
+const gameServers = new Map();
 
 /** Detect a LAN IPv4 address for the startup banner. */
 function getLanIp() {
@@ -108,7 +113,52 @@ async function start() {
     res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
   });
 
-  app.listen(PORT, async () => {
+  // --- WebSocket: HTTP server for upgrade ---
+  const server = http.createServer(app);
+
+  server.on("upgrade", (request, socket, head) => {
+    const pathname = new URL(request.url || "", "http://localhost").pathname;
+    const match = pathname.match(/^\/ws\/([^/]+)\/?$/);
+    if (!match) {
+      socket.destroy();
+      return;
+    }
+    const gameId = match[1];
+    let entry = gameServers.get(gameId);
+    if (!entry) {
+      const gameServerPath = path.join(gamesRoot, gameId, "server", "index.js");
+      try {
+        // eslint-disable-next-line global-require
+        const gameModule = require(gameServerPath);
+        if (typeof gameModule.register !== "function") {
+          socket.destroy();
+          return;
+        }
+        const gameWss = new WebSocketServer({ noServer: true });
+        const pathPrefix = `/ws/${gameId}`;
+        const storage = { getActiveGameId, setActiveGameId };
+        const broadcast = (msg) => {
+          const payload = typeof msg === "string" ? msg : JSON.stringify(msg);
+          gameWss.clients.forEach((c) => {
+            if (c.readyState === 1) c.send(payload);
+          });
+        };
+        const log = (message) => console.log(`[${gameId}]`, message);
+        gameModule.register({ wss: gameWss, pathPrefix, storage, broadcast, log });
+        entry = { wss: gameWss };
+        gameServers.set(gameId, entry);
+      } catch (err) {
+        console.error(`[hub] Failed to load game server "${gameId}":`, err.message);
+        socket.destroy();
+        return;
+      }
+    }
+    entry.wss.handleUpgrade(request, socket, head, (ws) => {
+      entry.wss.emit("connection", ws, request);
+    });
+  });
+
+  server.listen(PORT, async () => {
     const base = `http://localhost:${PORT}`;
     const lanIp = getLanIp();
     const playUrl = process.env.PLAY_URL || "";

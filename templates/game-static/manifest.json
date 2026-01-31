@@ -1,0 +1,8 @@
+{
+  "id": "my-game",
+  "name": "My Game",
+  "version": "0.1.0",
+  "description": "Short description of the game.",
+  "author": "Your Name",
+  "wip": true
+}

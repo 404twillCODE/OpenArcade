@@ -1,0 +1,10 @@
+{
+  "name": "openarcade",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenArcade — local game hub and game SDK",
+  "scripts": {
+    "build:games": "node scripts/build-games.mjs",
+    "dev:game:blackjack": "npm run dev --prefix games/blackjack/client-src"
+  }
+}

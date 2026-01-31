@@ -19,7 +19,7 @@ To stop the hub, press **Ctrl+C** in the launcher window.
 
 1. Download the repo and extract.
 2. **Double-click `start.command`** (or in Terminal run `./start.sh` from the repo root).
-3. First time: you may need to right‑click `start.command` → Open, or run `chmod +x start.sh start-dev.sh start.command` in Terminal.
+3. First time: you may need to right‑click `start.command` → Open, or run `chmod +x start.sh start.command` in Terminal.
 4. Follow the prompts; open the URLs printed.
 
 To stop the hub, press **Ctrl+C**.
@@ -28,7 +28,7 @@ To stop the hub, press **Ctrl+C**.
 
 1. Download the repo and extract.
 2. In a terminal, from the repo root run: `./start.sh`
-3. If needed: `chmod +x start.sh start-dev.sh start.command`
+3. If needed: `chmod +x start.sh start.command`
 4. Follow the prompts; open the URLs printed.
 
 To stop the hub, press **Ctrl+C**.
@@ -58,6 +58,9 @@ Open the URLs printed in the terminal (Landing, Admin, Play).
 
 ## Developer notes
 
+- **Dev launcher (Windows, contributors):**  
+  Double-click **`start-dev.bat`** in the repo root to run both the hub and the website together (no prompts). It frees ports 3000 and 5173, installs and builds hub + website, starts both in the background, opens the browser, and shows a clean summary. Press **R** to relaunch (full run again) or any other key to close. Same friendly style as `start.bat`.
+
 - **Hub UI (React) dev:**  
   `cd hub && npm run dev:ui` — runs the Vite dev server for the hub app (hot reload). You still need the hub server running to serve the API; run the server separately (e.g. after a one-time build: `npm run build:ui && node src/index.js`).
 
@@ -66,6 +69,7 @@ Open the URLs printed in the terminal (Landing, Admin, Play).
 
 - **Build commands:**  
   - Hub UI: `cd hub && npm run build:ui`  
+  - Games (with client-src): from repo root, `npm run build:games`  
   - Website: `cd website && npm run build` (if applicable)
 
 ## Monorepo
@@ -74,26 +78,32 @@ Open the URLs printed in the terminal (Landing, Admin, Play).
 - `hub/` — Node.js hub (Express + React UI in `hub/app`)
 - `games/` — Plugin-style game folders
 - `start.bat` — Windows launcher (double-click)
-- `start.sh` / `start-dev.sh` / `start.command` — macOS/Linux launchers
+- `start-dev.bat` — Windows dev launcher (hub + website, double-click)
+- `start.sh` / `start.command` — macOS/Linux launchers
 
-## Adding a new game
+## Making games
 
-1. Create a folder in `games/` using the game id as the folder name.
-2. Add `manifest.json` and a `client/` folder with `index.html`, `style.css`, and `main.js`.
-3. Keep the game client lightweight and free to run.
+Games are served at **`/game/<id>/`** — the hub serves the contents of **`games/<id>/client/`** at that path. You can add games in two ways.
 
-Manifest example:
+### Two modes
 
-```json
-{
-  "id": "blackjack",
-  "name": "Blackjack",
-  "version": "0.1.0",
-  "description": "A simple card game. (WIP)",
-  "author": "OpenArcade Contributors",
-  "wip": true
-}
-```
+- **A) Static game** — Hand-author **`games/<id>/client/`** with `index.html`, `style.css`, `main.js` (or similar). No build step. The hub serves these files as-is.
+- **B) Built game** — Add **`games/<id>/client-src/`** with a build pipeline (e.g. Vite + TypeScript). The build **outputs into `../client`**. The hub always serves from `client/`; run the build so `client/` is populated.
+
+### Commands
+
+- **Build all built games:** From repo root, run `npm run build:games`. This builds every game that has `client-src/` and writes output into each game’s `client/`.
+- **Run a single game dev server (if available):** e.g. `npm run dev:game:blackjack` runs the Vite dev server for the blackjack client (hot reload). For full E2E (hub + game), build the game and start the hub, then open `/play` and select the game.
+
+### PR checklist (game authors)
+
+Before opening a pull request for a new or updated game:
+
+- [ ] `manifest.json` has required keys: `id`, `name`, `version`, `description`, `author`, `wip`; `id` matches the folder name.
+- [ ] **Static:** `client/` contains `index.html` (and assets). **Built:** `client-src/` exists, build outputs to `../client`, and you ran `npm run build:games` so `client/` is populated.
+- [ ] From repo root: `cd hub && npm run validate:manifests` passes; `npm run build:games` passes (if any built games); `cd hub && npm run validate:games` passes.
+- [ ] Hub runs and your game loads at `/game/<id>/` and in the Play page.
+- [ ] Screenshot or short demo in the PR; mobile tested if applicable.
 
 ## GitHub Pages deploy
 
@@ -107,9 +117,22 @@ On every push to `main` and on pull requests, the CI workflow (`.github/workflow
 
 - Installs hub dependencies (`npm ci` in `hub/`)
 - Installs hub app dependencies (`npm ci` in `hub/app`)
-- Validates game manifests (`npm run validate:manifests`)
 - Builds the hub UI (`npm run build:ui`)
+- Validates game manifests (`npm run validate:manifests`)
+- Builds games with `client-src/` (`npm run build:games`)
+- Validates game packages (`npm run validate:games` — client layout and entry)
 - Runs the health check (`npm run healthcheck`): starts the server on a test port and verifies `/api/state` and `/api/games` respond correctly.
+
+See `CONTRIBUTING.md` for the full **Create a New Game** guide and templates (`templates/game-static/`, `templates/game-vite-ts/`). Blackjack is a full example with `client-src/` (Vite + TS) and `server/` (WebSocket).
+
+## Roadmap (Phase 2 — planned, not implemented)
+
+Future options for extending the SDK beyond JS/TS clients and Node server modules:
+
+- **Option A — WebAssembly client logic:** Game client logic written in Rust/Go (or other languages) compiled to WASM and shipped inside `client/`. The hub would still serve static (or built) HTML/JS that loads and runs the WASM module. No hub changes required beyond current static serving.
+- **Option B — External server modules:** Game server logic in Python/Go/etc. launched by the hub via `child_process` with a defined JSON message protocol over stdin/stdout (or a small RPC layer). The hub would route WebSocket traffic to/from the external process. Allows authors to use their preferred language for authoritative game logic without rewriting the hub.
+
+Phase 2 is **documentation only**; implementation is not yet scheduled.
 
 ## Project links
 

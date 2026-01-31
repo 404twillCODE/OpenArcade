@@ -41,6 +41,14 @@ jobs:
         run: npm run validate:manifests
         working-directory: hub
 
+      - name: Build games (client-src)
+        run: npm run build:games
+        working-directory: .
+
+      - name: Validate game packages
+        run: npm run validate:games
+        working-directory: hub
+
       - name: Health check (server + routes)
         run: npm run healthcheck
         working-directory: hub

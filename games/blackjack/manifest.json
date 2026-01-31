@@ -2,7 +2,7 @@
   "id": "blackjack",
   "name": "Blackjack",
   "version": "0.1.0",
-  "description": "A simple card game. (WIP)",
+  "description": "Multiplayer blackjack with authoritative server.",
   "author": "OpenArcade Contributors",
-  "wip": true
+  "wip": false
 }

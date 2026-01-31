@@ -4,8 +4,8 @@
  */
 
 export const layout = {
-  /** Page container: max width + horizontal padding */
-  container: "mx-auto max-w-6xl px-5 sm:px-8",
+  /** Page container: match website (72rem) */
+  container: "mx-auto w-full max-w-6xl px-5 sm:px-8",
   /** Full viewport background */
   pageBg: "min-h-screen bg-zinc-950",
 } as const;
@@ -25,12 +25,18 @@ export const text = {
   muted: "text-zinc-500",
   /** Section label (uppercase, small) */
   label: "text-xs font-semibold uppercase tracking-wider text-zinc-500",
-  /** Page title */
-  title: "text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl",
-  /** Page subtitle (hero, etc.) */
-  subtitle: "text-base text-zinc-500 sm:text-lg",
-  /** Header subtitle (smaller, e.g. PageHeader) */
-  headerSubtitle: "mt-1 text-sm text-zinc-500",
+  /** Hero main title (match website) */
+  heroTitle: "text-4xl font-bold tracking-tight text-zinc-100 sm:text-5xl sm:leading-tight",
+  /** Section / page title (match website Section h2) */
+  title: "text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl",
+  /** Hero / section subtitle (match website) */
+  subtitle: "text-lg leading-relaxed text-zinc-400",
+  /** Header subtitle (e.g. PageHeader) */
+  headerSubtitle: "mt-2 leading-relaxed text-zinc-400",
+  /** Card title (match website) */
+  cardTitle: "font-semibold text-zinc-100",
+  /** Card / list description (match website) */
+  cardDesc: "text-sm leading-relaxed text-zinc-400",
 } as const;
 
 export const spacing = {

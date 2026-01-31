@@ -55,10 +55,10 @@ export function Landing() {
             transition={{ duration: 0.25 }}
             className="mx-auto max-w-2xl text-center"
           >
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
+            <h1 className={text.heroTitle}>
               OpenArcade Hub
             </h1>
-            <p className="mt-4 text-base text-zinc-500 sm:text-lg">
+            <p className="mt-5 text-lg leading-relaxed text-zinc-400 max-w-2xl mx-auto">
               Local-first game hub. Pick a game, share a link, and play.
             </p>
 
@@ -94,14 +94,14 @@ export function Landing() {
 
       {/* How it works */}
       <Layout className="py-16 sm:py-20">
-        <h2 className={`text-center ${text.label}`}>
+        <h2 className={`text-center ${text.title}`}>
           How it works
         </h2>
         <motion.div
           variants={container}
           initial="hidden"
           animate="show"
-          className="mt-10 grid gap-6 sm:grid-cols-3"
+          className="mt-6 grid gap-6 sm:grid-cols-3"
         >
           {[
             {
@@ -122,13 +122,13 @@ export function Landing() {
           ].map((block) => (
             <motion.div key={block.step} variants={item}>
               <Card noHover className="p-6 sm:p-8">
-                <span className="text-xs font-medium text-zinc-500">
-                  Step {block.step}
-                </span>
-                <h3 className="mt-3 text-base font-semibold text-zinc-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 mb-3">
+                  <span className="text-sm font-semibold">{block.step}</span>
+                </div>
+                <h3 className={text.cardTitle}>
                   {block.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                <p className={`mt-2 ${text.cardDesc}`}>
                   {block.desc}
                 </p>
               </Card>
@@ -140,10 +140,10 @@ export function Landing() {
       {/* Quick actions */}
       <Layout className={`${spacing.section} pb-20 sm:pb-24`}>
         <Card noHover className="p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-zinc-100">
+          <h2 className={text.title}>
             Quick actions
           </h2>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className={`mt-2 ${text.cardDesc}`}>
             Copy links or open pages.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">

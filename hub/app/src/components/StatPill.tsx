@@ -29,12 +29,12 @@ export function StatPill({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       className={`
-        inline-flex items-center gap-2 rounded-xl border px-3 py-1.5
-        text-xs font-medium
+        inline-flex items-center gap-2 rounded-xl border px-3 py-2
+        text-sm font-medium
         ${variantStyles[variant]}
       `}
     >
-      {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden />}
+      {Icon && <Icon className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden />}
       <span className="text-zinc-500">{label}:</span>
       <span>{value}</span>
     </motion.span>

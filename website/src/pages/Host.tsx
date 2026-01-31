@@ -78,6 +78,30 @@ cd OpenArcade
         </Card>
       </Section>
 
+      <Section title="Contributors" className="mt-12">
+        <Card>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
+              <Globe className="h-5 w-5" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="leading-relaxed text-zinc-400">
+                Contributors can add games via pull request. Both static games (hand-authored <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">client/</code>) and built games (Vite + TypeScript via <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">client-src/</code>) are supported. See the{" "}
+                <a
+                  href="https://github.com/404twillcode/OpenArcade/blob/main/CONTRIBUTING.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline"
+                >
+                  contributing guide on GitHub
+                </a>{" "}
+                for details.
+              </p>
+            </div>
+          </div>
+        </Card>
+      </Section>
+
       <Section title="Tunnel (remote players)" className="mt-12">
         <Card>
           <div className="flex items-start gap-3">

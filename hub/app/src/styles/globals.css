@@ -8,7 +8,7 @@
   }
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased;
-    @apply text-base leading-relaxed;
+    @apply leading-relaxed;
   }
   ::selection {
     @apply bg-blue-500/25 text-zinc-100;
@@ -33,7 +33,7 @@
 
 @layer components {
   .container-page {
-    @apply mx-auto max-w-6xl px-5 sm:px-8;
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
   /* Subtle vignette + faint highlight behind hero */
   .vignette {

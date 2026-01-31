@@ -11,9 +11,11 @@
     "dev": "node src/index.js",
     "dev:ui": "npm run dev --prefix app",
     "validate:manifests": "node scripts/validateManifests.js",
+    "validate:games": "npm run validate:manifests && node scripts/validateGamePackages.js",
     "healthcheck": "node scripts/healthcheck.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
   }
 }

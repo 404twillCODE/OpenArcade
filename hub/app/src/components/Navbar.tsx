@@ -24,7 +24,7 @@ export function Navbar() {
           className="flex items-center gap-2 text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 rounded-lg"
         >
           <Gamepad2 className="h-5 w-5 text-blue-500" aria-hidden />
-          <span className="text-sm font-semibold tracking-tight">
+          <span className="font-semibold tracking-tight text-zinc-100">
             OpenArcade
           </span>
         </Link>

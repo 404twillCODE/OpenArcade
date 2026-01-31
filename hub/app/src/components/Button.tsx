@@ -36,7 +36,7 @@ export function Button({
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5
+        inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-2.5
         text-sm font-medium transition-colors
         disabled:pointer-events-none disabled:opacity-50
         ${variantClasses[variant]} ${className}

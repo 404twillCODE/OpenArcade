@@ -100,13 +100,10 @@ async function start() {
   // --- React SPA: static assets from hub/public/app ---
   app.use(express.static(publicAppPath));
 
-  // --- Admin SPA: host-only; serve index.html for /admin and /admin/ ---
-  const indexHtml = path.join(publicAppPath, "index.html");
-  app.get(["/admin", "/admin/"], adminOnly, (req, res, next) => {
-    res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
-  });
+  // Admin is in the desktop app only; /admin is not served here.
 
   // --- SPA fallback: serve index.html for remaining app routes (/, /play, /play/) ---
+  const indexHtml = path.join(publicAppPath, "index.html");
   const spaRoutes = ["/", "/play", "/play/"];
   app.get("*", (req, res, next) => {
     if (!spaRoutes.includes(req.path)) return next();
@@ -115,6 +112,15 @@ async function start() {
 
   // --- WebSocket: HTTP server for upgrade ---
   const server = http.createServer(app);
+
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Port ${PORT} is already in use. Try a different port.`);
+    } else {
+      console.error("Server error:", err.message);
+    }
+    process.exit(1);
+  });
 
   server.on("upgrade", (request, socket, head) => {
     const pathname = new URL(request.url || "", "http://localhost").pathname;
@@ -173,7 +179,6 @@ async function start() {
     console.log("  —");
     console.log(`  Landing (local):  ${base}/`);
     if (lanIp) console.log(`  Landing (LAN):    http://${lanIp}:${PORT}/`);
-    console.log(`  Admin (local):    ${base}/admin  (host-only)`);
     console.log(`  Play (local):     ${base}/play`);
     if (playUrl) console.log(`  Play (share):     ${playUrl}`);
     console.log(`  Active game:      ${activeGameId}`);

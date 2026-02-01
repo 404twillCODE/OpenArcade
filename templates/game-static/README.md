@@ -7,4 +7,4 @@ Copy this folder into `games/<your-game-id>/` and edit:
 - **client/style.css** — Your styles (OpenArcade dark theme vars provided).
 - **client/main.js** — Your game logic.
 
-The hub serves `client/` at `/game/<id>/`. No build step; static files only.
+The hub serves `client/` at `/game/<id>/`. No build step; static files only. For multiplayer, add `server/index.js` (see CONTRIBUTING.md).

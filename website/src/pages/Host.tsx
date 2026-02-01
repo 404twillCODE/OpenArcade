@@ -23,7 +23,13 @@ export default function Host() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="mb-2 font-medium text-zinc-200">
-                Windows
+                Desktop app (Windows, easiest)
+              </p>
+              <p className="mb-4 leading-relaxed text-zinc-400">
+                Run the OpenArcade desktop app from <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">desktop/</code>. It can download the repo (or use an existing folder), install dependencies, build the hub UI, and start the server. Use the in-app Admin to set the active game and copy the Play link.
+              </p>
+              <p className="mb-2 font-medium text-zinc-200">
+                Windows (hub from repo)
               </p>
               <p className="mb-4 leading-relaxed text-zinc-400">
                 Download the repo (ZIP or clone), extract, then <strong>double-click <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.bat</code></strong> in the repo root.

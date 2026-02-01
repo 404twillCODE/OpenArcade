@@ -3,6 +3,8 @@
 Thanks for your interest in OpenArcade. We welcome issues, feature requests,
 and new game submissions.
 
+For roles, boundaries, and the game contract (what games can assume and must not rely on), see **docs/ARCHITECTURE.md**.
+
 ## Quick steps
 
 1. Fork the repo and create a feature branch.
@@ -14,6 +16,8 @@ and new game submissions.
 ### 1. Pick an id
 
 Use **kebab-case** (e.g. `my-card-game`). The folder name must match: `games/<id>/`.
+
+**Game contract (summary):** Games are self-contained. The hub serves your client at `/game/<id>/` and does not expose internals. Your client may call `GET /api/games` and `GET /api/state` (or `/api/active-game`). If you add a `server/`, the hub loads it on first WebSocket connection to `/ws/<id>` and passes `{ wss, pathPrefix, storage, broadcast, log }`. Do not depend on hub file paths or undocumented APIs. See docs/ARCHITECTURE.md for full details.
 
 ### 2. Create the folder and manifest
 
@@ -71,6 +75,8 @@ Run these from the repo root (or as indicated):
 
 ## Adding a multiplayer game (with server)
 
+Games with a `server/` folder get a WebSocket endpoint at `/ws/<id>`. The hub loads your server on first connection and passes helpers so you can broadcast and (optionally) read hub state. Details are in docs/ARCHITECTURE.md.
+
 To add a game that uses the hub’s WebSocket runtime:
 
 1. Add a `server/` folder with `index.js` that exports a `register` function:
@@ -91,6 +97,7 @@ To add a game that uses the hub’s WebSocket runtime:
 
 ## Local testing
 
+- **Windows (desktop app):** Run the app from `desktop/` and point it at your repo folder. It can download OpenArcade or use an existing clone. After install, start the hub and use the in-app Admin and Play to test your game.
 - **Windows (hub only):** Double-click `start.bat` in the repo root. It installs deps, builds the UI, and starts the hub. Open the URLs it prints.
 - **Windows (hub + website for contributing):** Double-click `start-dev.bat` in the repo root. It runs both the hub (port 3000) and the website dev server (port 5173) with no prompts, opens the browser, and shows a clean summary. Press **R** to relaunch (full run again) or any other key to close.
 - **Other:** From the repo root, run:
@@ -99,7 +106,7 @@ To add a game that uses the hub’s WebSocket runtime:
   npm install
   npm start
   ```
-  Then open the Admin and Player URLs printed in the terminal.
+  Then open the Admin and Play URLs printed in the terminal.
 
 ## Code of Conduct
 

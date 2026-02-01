@@ -1,12 +1,19 @@
 # OpenArcade
 
-OpenArcade is a GitHub-first open source arcade. It includes a local "hub"
-that hosts an admin UI and serves playable games, plus a simple website that
-can be published via GitHub Pages.
+OpenArcade is a GitHub-first open source arcade. It includes a local **hub**
+that hosts an admin UI and serves playable games, a **desktop app** (Windows)
+that wraps the hub for a one-click experience, and a **website** for
+marketing/docs (e.g. GitHub Pages).
 
 ## Quick Start
 
-### Windows
+### Desktop app (Windows, easiest)
+
+1. Open the **desktop/** app (build or run from the repo).
+2. Download OpenArcade (or choose an existing repo folder), install dependencies, then start the hub.
+3. Use the in-app Admin to set the active game and share the Play link.
+
+### Windows (hub only, from repo)
 
 1. Download the repo (ZIP or clone) and extract.
 2. **Double-click `start.bat`** in the repo root.
@@ -56,6 +63,8 @@ Open the URLs printed in the terminal (Landing, Admin, Play).
 - **Admin is “host-only”**  
   The Admin page is only available when you open it from the same machine that is running the hub (localhost). This is intentional so only the host can change the active game. Players should use the **Play** link you share with them.
 
+For roles, boundaries, and the game contract, see **docs/ARCHITECTURE.md**.
+
 ## Developer notes
 
 - **Dev launcher (Windows, contributors):**  
@@ -74,10 +83,11 @@ Open the URLs printed in the terminal (Landing, Admin, Play).
 
 ## Monorepo
 
-- `website/` — Static site for GitHub Pages
+- `desktop/` — Electron desktop app (Windows); wraps the hub, download/install/start from the UI
 - `hub/` — Node.js hub (Express + React UI in `hub/app`)
 - `games/` — Plugin-style game folders
-- `start.bat` — Windows launcher (double-click)
+- `website/` — Static site for GitHub Pages
+- `start.bat` — Windows launcher (double-click) for hub only
 - `start-dev.bat` — Windows dev launcher (hub + website, double-click)
 - `start.sh` / `start.command` — macOS/Linux launchers
 

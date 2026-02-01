@@ -11,7 +11,7 @@ export default function Contribute() {
           Contribute a game
         </h1>
         <p className="mt-3 text-lg leading-relaxed text-zinc-400">
-          Add a new game by opening a pull request. Each game lives in its own folder with a manifest and client. Both static games (hand-authored <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client/</code>) and built games (React + TypeScript via Vite in <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client-src/</code>) are supported.
+          Add a new game by opening a pull request. Each game lives in its own folder with a manifest and client. Both static games (hand-authored <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client/</code>) and built games (Vite + TypeScript in <code className="rounded bg-zinc-800 px-1 py-0.5 text-sm text-zinc-300">client-src/</code>) are supported.
         </p>
       </div>
 
@@ -108,7 +108,7 @@ export default function Contribute() {
         </Card>
       </Section>
 
-      <Section title="Local development (Windows)" className="mt-12">
+      <Section title="Local development" className="mt-12">
         <Card>
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
@@ -116,7 +116,10 @@ export default function Contribute() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="leading-relaxed text-zinc-400">
-                To run both the hub and this website locally for contributing: double-click <strong><code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start-dev.bat</code></strong> in the repo root (Windows). It frees ports 3000 and 5173, installs and builds everything, starts both servers, and opens the browser. Press <strong>R</strong> to relaunch or any other key to close. Same friendly style as <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.bat</code>.
+                <strong>Testing your game:</strong> Run the hub with <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start.bat</code> (Windows) or <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">cd hub && npm start</code>. Or use the <strong>desktop app</strong> (Windows) and point it at your repo folder — then use Admin/Play to try your game.
+              </p>
+              <p className="mt-3 leading-relaxed text-zinc-400">
+                <strong>Hub + website together (e.g. editing this site):</strong> Double-click <strong><code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">start-dev.bat</code></strong> in the repo root (Windows). It frees ports 3000 and 5173, installs and builds everything, starts both servers, and opens the browser. Press <strong>R</strong> to relaunch or any other key to close.
               </p>
             </div>
           </div>

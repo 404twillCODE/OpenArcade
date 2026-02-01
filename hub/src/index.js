@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 const http = require("http");
 const path = require("path");
 const os = require("os");
@@ -9,8 +10,10 @@ const { ensureStateFile, getActiveGameId, setActiveGameId } = require("./storage
 
 const PORT = process.env.PORT || 3000;
 
-/** Map gameId -> { wss, module } for per-game WebSocket servers. */
+/** Map gameId -> { wss } for per-game WebSocket servers. */
 const gameServers = new Map();
+/** Set of gameIds that have no server (log once per id to avoid spam). */
+const noServerLogged = new Set();
 
 /** Detect a LAN IPv4 address for the startup banner. */
 function getLanIp() {
@@ -23,12 +26,11 @@ function getLanIp() {
   return null;
 }
 
+/** Default active game: first by id (stable order). No hardcoded game ids. */
 function getDefaultActiveGameId(games) {
-  const blackjack = games.find((game) => game.id === "blackjack");
-  if (blackjack) {
-    return blackjack.id;
-  }
-  return games.length > 0 ? games[0].id : null;
+  if (games.length === 0) return null;
+  const sorted = [...games].sort((a, b) => a.id.localeCompare(b.id));
+  return sorted[0].id;
 }
 
 /** True if request is from loopback (127.0.0.1, ::1, ::ffff:127.0.0.1). Does not use X-Forwarded-For. */
@@ -54,6 +56,14 @@ async function start() {
   const defaultActiveGameId = getDefaultActiveGameId(games);
 
   await ensureStateFile({ activeGameId: defaultActiveGameId });
+
+  // If persisted active game is no longer in the list (e.g. game removed), reset to default.
+  let activeGameId = await getActiveGameId();
+  const gameIds = new Set(games.map((g) => g.id));
+  if (activeGameId && !gameIds.has(activeGameId)) {
+    await setActiveGameId(defaultActiveGameId);
+    console.warn("[hub] Active game", activeGameId, "not in games list; reset to", defaultActiveGameId);
+  }
 
   const app = express();
   app.use(express.json());
@@ -100,11 +110,9 @@ async function start() {
   // --- React SPA: static assets from hub/public/app ---
   app.use(express.static(publicAppPath));
 
-  // Admin is in the desktop app only; /admin is not served here.
-
-  // --- SPA fallback: serve index.html for remaining app routes (/, /play, /play/) ---
+  // --- SPA fallback: serve index.html for app routes (/, /admin, /play). Admin API remains host-only. ---
   const indexHtml = path.join(publicAppPath, "index.html");
-  const spaRoutes = ["/", "/play", "/play/"];
+  const spaRoutes = ["/", "/admin", "/admin/", "/play", "/play/"];
   app.get("*", (req, res, next) => {
     if (!spaRoutes.includes(req.path)) return next();
     res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
@@ -115,9 +123,9 @@ async function start() {
 
   server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
-      console.error(`Port ${PORT} is already in use. Try a different port.`);
+      console.error("[hub] Port", PORT, "is already in use. Try a different port (e.g. PORT=3001).");
     } else {
-      console.error("Server error:", err.message);
+      console.error("[hub] Server error:", err.message);
     }
     process.exit(1);
   });
@@ -133,10 +141,19 @@ async function start() {
     let entry = gameServers.get(gameId);
     if (!entry) {
       const gameServerPath = path.join(gamesRoot, gameId, "server", "index.js");
+      if (!fs.existsSync(gameServerPath)) {
+        if (!noServerLogged.has(gameId)) {
+          noServerLogged.add(gameId);
+          console.warn("[hub] Game", gameId, "has no server/; WebSocket connections to /ws/" + gameId + " will close. Add server/index.js for multiplayer.");
+        }
+        socket.destroy();
+        return;
+      }
       try {
         // eslint-disable-next-line global-require
         const gameModule = require(gameServerPath);
         if (typeof gameModule.register !== "function") {
+          console.warn("[hub] Game", gameId, "server/index.js must export register().");
           socket.destroy();
           return;
         }
@@ -154,7 +171,7 @@ async function start() {
         entry = { wss: gameWss };
         gameServers.set(gameId, entry);
       } catch (err) {
-        console.error(`[hub] Failed to load game server "${gameId}":`, err.message);
+        console.error("[hub] Failed to load game server", gameId + ":", err.message);
         socket.destroy();
         return;
       }
@@ -175,7 +192,7 @@ async function start() {
       // ignore
     }
     console.log("");
-    console.log("  OpenArcade Hub");
+    console.log("  [hub] OpenArcade Hub");
     console.log("  —");
     console.log(`  Landing (local):  ${base}/`);
     if (lanIp) console.log(`  Landing (LAN):    http://${lanIp}:${PORT}/`);

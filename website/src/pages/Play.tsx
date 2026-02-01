@@ -11,7 +11,7 @@ export default function Play() {
           Join a game
         </h1>
         <p className="mt-3 text-lg leading-relaxed text-zinc-400">
-          The host shares a link. Open it in your browser to play the active game.
+          The host runs the hub (desktop app or terminal) and shares a link. Open it in your browser to play the active game.
         </p>
       </div>
 

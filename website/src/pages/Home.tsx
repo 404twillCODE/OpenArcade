@@ -25,9 +25,9 @@ const features = [
 ];
 
 const steps = [
-  "Windows: double-click start.bat in the repo root. Other: clone the repo, cd hub, npm install, npm start.",
-  "Open the Admin URL and set the active game.",
-  "Share the Player URL. Everyone opens the same game.",
+  "Windows: use the desktop app (easiest) or double-click start.bat in the repo root. Other: clone the repo, cd hub, npm install, npm start.",
+  "Open the Admin URL (or in-app Admin) and set the active game.",
+  "Share the Play URL. Everyone opens the same game.",
 ];
 
 export default function Home() {
@@ -112,7 +112,7 @@ export default function Home() {
           Ready to host or contribute?
         </h2>
         <p className="mx-auto mt-2 max-w-xl text-zinc-400">
-          On Windows, double-click start.bat to run the hub. Otherwise use the terminal. Or add a new game to the collection.
+          On Windows, use the desktop app or double-click start.bat to run the hub. Otherwise use the terminal. Or add a new game to the collection.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Button to="/host" variant="primary">

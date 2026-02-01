@@ -45,6 +45,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
           href={href}
           className={combined}
           whileTap={tapScale}
+          {...props}
         >
           {children}
         </motion.a>

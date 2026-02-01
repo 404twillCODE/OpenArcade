@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Server, Code2, Zap, ArrowRight } from "lucide-react";
+import { Server, Code2, Zap, ArrowRight, Download } from "lucide-react";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Section from "../components/Section";
 import { motion } from "framer-motion";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { DOWNLOAD_WINDOWS_URL } from "../config";
 
 const features = [
   {
@@ -49,7 +50,18 @@ export default function Home() {
           Host local game nights with a simple hub. Contribute games via pull requests.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Button to="/host" variant="primary" className="gap-2">
+          <Button
+            as="a"
+            href={DOWNLOAD_WINDOWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="primary"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            Download for Windows (.exe)
+          </Button>
+          <Button to="/host" variant="secondary" className="gap-2">
             <Server className="h-4 w-4" aria-hidden />
             Host a Server
           </Button>

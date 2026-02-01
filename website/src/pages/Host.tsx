@@ -1,7 +1,9 @@
-import { Terminal, ArrowRight, Globe } from "lucide-react";
+import { Terminal, ArrowRight, Globe, Download } from "lucide-react";
+import Button from "../components/Button";
 import Card from "../components/Card";
 import CodeBlock from "../components/CodeBlock";
 import Section from "../components/Section";
+import { DOWNLOAD_WINDOWS_URL } from "../config";
 
 export default function Host() {
   return (
@@ -25,8 +27,21 @@ export default function Host() {
               <p className="mb-2 font-medium text-zinc-200">
                 Desktop app (Windows, easiest)
               </p>
-              <p className="mb-4 leading-relaxed text-zinc-400">
-                Run the OpenArcade desktop app from <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-zinc-300">desktop/</code>. It can download the repo (or use an existing folder), install dependencies, build the hub UI, and start the server. Use the in-app Admin to set the active game and copy the Play link.
+              <p className="mb-3 leading-relaxed text-zinc-400">
+                Download the installer and run it. The app can download OpenArcade (or use an existing folder), install dependencies, build the hub UI, and start the server. Use the in-app Admin to set the active game and copy the Play link.
+              </p>
+              <p className="mb-4">
+                <Button
+                  as="a"
+                  href={DOWNLOAD_WINDOWS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="primary"
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" aria-hidden />
+                  Download OpenArcade for Windows (.exe)
+                </Button>
               </p>
               <p className="mb-2 font-medium text-zinc-200">
                 Windows (hub from repo)

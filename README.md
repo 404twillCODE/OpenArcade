@@ -9,9 +9,11 @@ marketing/docs (e.g. GitHub Pages).
 
 ### Desktop app (Windows, easiest)
 
-1. Open the **desktop/** app (build or run from the repo).
-2. Download OpenArcade (or choose an existing repo folder), install dependencies, then start the hub.
+1. **Download** the Windows installer (`.exe`) from the [releases page](https://github.com/404twillCODE/OpenArcade/releases) (or build from source: open **desktop/** and run the app).
+2. Run the app; it can download OpenArcade (or use an existing repo folder), install dependencies, then start the hub.
 3. Use the in-app Admin to set the active game and share the Play link.
+
+**Publishing a new .exe to Releases:** Push a version tag (e.g. `v1.0.0`). The GitHub Action **Release Desktop (Windows)** builds the .exe and creates a release with the installer attached. From your repo: `git tag v1.0.0` then `git push origin v1.0.0`. You can also run the workflow manually from the Actions tab (artifact only, no release).
 
 ### Windows (hub only, from repo)
 
